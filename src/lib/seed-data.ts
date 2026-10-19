@@ -1,0 +1,638 @@
+import { 
+  User, 
+  Tournament, 
+  Registration, 
+  Payment, 
+  PaymentAccount, 
+  MatchResult, 
+  WalletTransaction, 
+  Withdrawal, 
+  Notification, 
+  AuditLog, 
+  SiteSettings 
+} from '../types';
+import { DEFAULT_POINTS_CONFIG } from './points';
+import { PERMISSION_PRESETS } from './permissions';
+
+export const INITIAL_USERS: User[] = [
+  {
+    id: 'user-super-admin',
+    email: 'admin@booyah.gg',
+    phone: '01711000000',
+    displayName: 'Tariq Al-Mamun',
+    ffUid: '100000001',
+    ffIgn: '亗・HEAD・ADMIN・亗',
+    avatarUrl: '/src/assets/images/avatar_esports_pro_1792418533019.jpg',
+    role: 'SUPER_ADMIN',
+    permissions: [],
+    walletBalance: 25000,
+    isBanned: false,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'user-mod-payment',
+    email: 'mod.pay@booyah.gg',
+    phone: '01711223344',
+    displayName: 'Rashid (Pay Mod)',
+    ffUid: '200000002',
+    ffIgn: 'MOD_RASHID',
+    avatarUrl: '/src/assets/images/avatar_esports_pro_1792418533019.jpg',
+    role: 'MODERATOR',
+    permissions: [...PERMISSION_PRESETS.PAYMENT_MODERATOR.permissions],
+    walletBalance: 500,
+    isBanned: false,
+    isActive: true,
+    createdAt: '2026-02-01T00:00:00.000Z',
+    createdBy: 'user-super-admin',
+  },
+  {
+    id: 'user-mod-match',
+    email: 'mod.match@booyah.gg',
+    phone: '01711334455',
+    displayName: 'Farhan (Match Mod)',
+    ffUid: '300000003',
+    ffIgn: 'MOD_FARHAN',
+    avatarUrl: '/src/assets/images/avatar_esports_pro_1792418533019.jpg',
+    role: 'MODERATOR',
+    permissions: [...PERMISSION_PRESETS.MATCH_MODERATOR.permissions],
+    walletBalance: 300,
+    isBanned: false,
+    isActive: true,
+    createdAt: '2026-02-15T00:00:00.000Z',
+    createdBy: 'user-super-admin',
+  },
+  {
+    id: 'user-player-1',
+    email: 'tanvir@ff.bd',
+    phone: '01799887766',
+    displayName: 'Tanvir Ahmed',
+    ffUid: '249018471',
+    ffIgn: '亗・S N I P E R・亗',
+    avatarUrl: '/src/assets/images/avatar_esports_pro_1792418533019.jpg',
+    role: 'PLAYER',
+    permissions: [],
+    walletBalance: 1450,
+    isBanned: false,
+    isActive: true,
+    createdAt: '2026-03-01T10:00:00.000Z',
+  },
+  {
+    id: 'user-player-2',
+    email: 'siam@ff.bd',
+    phone: '01811223344',
+    displayName: 'Siam Chowdhury',
+    ffUid: '819204910',
+    ffIgn: '『BD』PREDATOR',
+    avatarUrl: '/src/assets/images/avatar_esports_pro_1792418533019.jpg',
+    role: 'PLAYER',
+    permissions: [],
+    walletBalance: 320,
+    isBanned: false,
+    isActive: true,
+    createdAt: '2026-03-05T12:00:00.000Z',
+  },
+  {
+    id: 'user-player-3',
+    email: 'rafi@ff.bd',
+    phone: '01922334455',
+    displayName: 'Rafiul Islam',
+    ffUid: '918204128',
+    ffIgn: '⚡RAF1_FF⚡',
+    avatarUrl: '/src/assets/images/avatar_esports_pro_1792418533019.jpg',
+    role: 'PLAYER',
+    permissions: [],
+    walletBalance: 850,
+    isBanned: false,
+    isActive: true,
+    createdAt: '2026-03-10T14:00:00.000Z',
+  },
+];
+
+export const INITIAL_PAYMENT_ACCOUNTS: PaymentAccount[] = [
+  {
+    id: 'acc-bkash-1',
+    method: 'BKASH',
+    label: 'bKash Personal (Primary)',
+    accountNumber: '01711998822',
+    accountName: 'BOOYAH Arena Esports',
+    accountType: 'PERSONAL',
+    instructions: 'Go to bKash App > Send Money > Enter number > Amount > Reference: Your Free Fire UID. Then copy TrxID.',
+    displayOrder: 1,
+    isActive: true,
+    updatedBy: 'user-super-admin',
+    updatedAt: '2026-03-01T00:00:00.000Z',
+  },
+  {
+    id: 'acc-nagad-1',
+    method: 'NAGAD',
+    label: 'Nagad Personal',
+    accountNumber: '01822334455',
+    accountName: 'Arena Cashier',
+    accountType: 'PERSONAL',
+    instructions: 'Dial *167# or use Nagad App > Send Money > Enter Number > Amount. Paste the 8-character TrxID.',
+    displayOrder: 2,
+    isActive: true,
+    updatedBy: 'user-super-admin',
+    updatedAt: '2026-03-01T00:00:00.000Z',
+  },
+  {
+    id: 'acc-rocket-1',
+    method: 'ROCKET',
+    label: 'Rocket Personal',
+    accountNumber: '019334455668',
+    accountName: 'Arena Rocket',
+    accountType: 'PERSONAL',
+    instructions: 'Send Money to 12-digit Rocket account number. Enter your FF UID in remarks.',
+    displayOrder: 3,
+    isActive: true,
+    updatedBy: 'user-super-admin',
+    updatedAt: '2026-03-01T00:00:00.000Z',
+  },
+];
+
+const now = Date.now();
+const oneHour = 60 * 60 * 1000;
+const oneDay = 24 * oneHour;
+
+export const INITIAL_TOURNAMENTS: Tournament[] = [
+  {
+    id: 'tour-1-night-squad',
+    title: 'Night Squad Showdown (Grand Finals)',
+    description: 'High-stakes 4v4 Bermuda clash. Top 3 squads claim the prize pool + bonus ৳15 per confirmed kill! Live spectating on Discord.',
+    bannerUrl: '/src/assets/images/banner_bermuda_showdown_1792418532304.jpg',
+    mode: 'SQUAD',
+    map: 'BERMUDA',
+    matchType: 'BR_RANKED',
+    entryFee: 100,
+    prizePool: 3500,
+    prizeDistribution: { '1': 2000, '2': 1000, '3': 500 },
+    perKillPrize: 15,
+    maxSlots: 48,
+    filledSlots: 42,
+    startsAt: new Date(now + 45 * 60 * 1000).toISOString(), // Starts in 45m
+    registrationClosesAt: new Date(now + 35 * 60 * 1000).toISOString(),
+    status: 'OPEN',
+    roomId: '7789410',
+    roomPassword: 'nightfight',
+    roomReleasedAt: null, // Not yet released!
+    rules: 'No emulator players allowed. Gun skins attributes: OFF. Character skills: ON. No teaming in Solo. In case of tie, highest kills decides ranking.',
+    pointsConfig: DEFAULT_POINTS_CONFIG,
+    createdBy: 'user-super-admin',
+    createdAt: new Date(now - 2 * oneDay).toISOString(),
+  },
+  {
+    id: 'tour-2-live-kalahari',
+    title: 'Duo Desert Rush: Kalahari Survival',
+    description: 'Intense 2v2 tactical survival. Custom Room is live! Room ID and password have been distributed to all confirmed warriors.',
+    bannerUrl: '/src/assets/images/hero_booyah_arena_1792418531252.jpg',
+    mode: 'DUO',
+    map: 'KALAHARI',
+    matchType: 'BR_RANKED',
+    entryFee: 50,
+    prizePool: 1800,
+    prizeDistribution: { '1': 1100, '2': 500, '3': 200 },
+    perKillPrize: 10,
+    maxSlots: 24,
+    filledSlots: 24,
+    startsAt: new Date(now - 10 * 60 * 1000).toISOString(), // Match started 10m ago
+    registrationClosesAt: new Date(now - 25 * 60 * 1000).toISOString(),
+    status: 'LIVE',
+    roomId: '8391024',
+    roomPassword: 'ffbooyah7',
+    roomReleasedAt: new Date(now - 20 * 60 * 1000).toISOString(), // Released!
+    rules: 'Mobile only. No grenade spam in first zone. Screenshot must be taken at Booyah screen.',
+    pointsConfig: DEFAULT_POINTS_CONFIG,
+    createdBy: 'user-super-admin',
+    createdAt: new Date(now - 1 * oneDay).toISOString(),
+  },
+  {
+    id: 'tour-3-clash-squad',
+    title: 'Clash Squad 4v4: Factory Showdown',
+    description: 'Fast-paced round-by-round tactical combat in Nexterra Factory. Best of 7 rounds format. Instant Booyah glory!',
+    bannerUrl: '/src/assets/images/banner_clash_squad_1792418532376.jpg',
+    mode: 'SQUAD',
+    map: 'NEXTERRA',
+    matchType: 'CLASH_SQUAD',
+    entryFee: 60,
+    prizePool: 1500,
+    prizeDistribution: { '1': 1000, '2': 500 },
+    maxSlots: 16,
+    filledSlots: 6,
+    startsAt: new Date(now + 26 * oneHour).toISOString(), // Tomorrow
+    registrationClosesAt: new Date(now + 25 * oneHour).toISOString(),
+    status: 'OPEN',
+    rules: 'All active weapon attachments permitted. Grenade purchase limit: 1 per round. Revives allowed.',
+    pointsConfig: DEFAULT_POINTS_CONFIG,
+    createdBy: 'user-super-admin',
+    createdAt: new Date(now - 6 * oneHour).toISOString(),
+  },
+  {
+    id: 'tour-4-completed-purgatory',
+    title: 'Solo Midnight Rush: Purgatory Championship',
+    description: 'Solo carnage across Brasilia and Fire Brigade. Match concluded with 48 registered players.',
+    bannerUrl: '/src/assets/images/banner_bermuda_showdown_1792418532304.jpg',
+    mode: 'SOLO',
+    map: 'PURGATORY',
+    matchType: 'BR_RANKED',
+    entryFee: 40,
+    prizePool: 2000,
+    prizeDistribution: { '1': 1200, '2': 500, '3': 300 },
+    perKillPrize: 10,
+    maxSlots: 48,
+    filledSlots: 48,
+    startsAt: new Date(now - 1 * oneDay).toISOString(),
+    registrationClosesAt: new Date(now - 1 * oneDay - oneHour).toISOString(),
+    status: 'COMPLETED',
+    roomId: '5541908',
+    roomPassword: 'rushpurgatory',
+    roomReleasedAt: new Date(now - 1 * oneDay - 15 * 60000).toISOString(),
+    rules: 'Standard solo ranking points. Teaming results in instant ban and prize forfeiture.',
+    pointsConfig: DEFAULT_POINTS_CONFIG,
+    createdBy: 'user-super-admin',
+    createdAt: new Date(now - 3 * oneDay).toISOString(),
+  },
+];
+
+export const INITIAL_REGISTRATIONS: Registration[] = [
+  // Tanvir registered in LIVE Tournament 2 -> CONFIRMED (Slot 7)
+  {
+    id: 'reg-tanvir-tour2',
+    tournamentId: 'tour-2-live-kalahari',
+    userId: 'user-player-1',
+    userDisplayName: 'Tanvir Ahmed',
+    ffUid: '249018471',
+    ffIgn: '亗・S N I P E R・亗',
+    phone: '01799887766',
+    teamName: 'Delta Duo',
+    slotNumber: 7,
+    status: 'CONFIRMED',
+    paymentId: 'pay-tanvir-tour2',
+    createdAt: new Date(now - 2 * oneHour).toISOString(),
+  },
+  // Tanvir has a pending payment submitted for Tournament 1 (Night Squad)
+  {
+    id: 'reg-tanvir-tour1',
+    tournamentId: 'tour-1-night-squad',
+    userId: 'user-player-1',
+    userDisplayName: 'Tanvir Ahmed',
+    ffUid: '249018471',
+    ffIgn: '亗・S N I P E R・亗',
+    phone: '01799887766',
+    teamName: 'Apex Predators',
+    status: 'PAYMENT_SUBMITTED',
+    paymentId: 'pay-tanvir-tour1',
+    createdAt: new Date(now - 20 * 60 * 1000).toISOString(),
+  },
+  // Siam registered in Tournament 1 -> CONFIRMED (Slot 12)
+  {
+    id: 'reg-siam-tour1',
+    tournamentId: 'tour-1-night-squad',
+    userId: 'user-player-2',
+    userDisplayName: 'Siam Chowdhury',
+    ffUid: '819204910',
+    ffIgn: '『BD』PREDATOR',
+    phone: '01811223344',
+    teamName: 'Dhaka Kings',
+    slotNumber: 12,
+    status: 'CONFIRMED',
+    paymentId: 'pay-siam-tour1',
+    createdAt: new Date(now - 3 * oneHour).toISOString(),
+  },
+  // Rafi registered in Tournament 4 (Completed) -> CONFIRMED (Slot 3)
+  {
+    id: 'reg-rafi-tour4',
+    tournamentId: 'tour-4-completed-purgatory',
+    userId: 'user-player-3',
+    userDisplayName: 'Rafiul Islam',
+    ffUid: '918204128',
+    ffIgn: '⚡RAF1_FF⚡',
+    phone: '01922334455',
+    slotNumber: 3,
+    status: 'CONFIRMED',
+    paymentId: 'pay-rafi-tour4',
+    createdAt: new Date(now - 28 * oneHour).toISOString(),
+  },
+  // Tanvir was registered in Tournament 4 -> CONFIRMED (Slot 1)
+  {
+    id: 'reg-tanvir-tour4',
+    tournamentId: 'tour-4-completed-purgatory',
+    userId: 'user-player-1',
+    userDisplayName: 'Tanvir Ahmed',
+    ffUid: '249018471',
+    ffIgn: '亗・S N I P E R・亗',
+    phone: '01799887766',
+    slotNumber: 1,
+    status: 'CONFIRMED',
+    paymentId: 'pay-tanvir-tour4',
+    createdAt: new Date(now - 29 * oneHour).toISOString(),
+  },
+];
+
+export const INITIAL_PAYMENTS: Payment[] = [
+  {
+    id: 'pay-tanvir-tour1',
+    registrationId: 'reg-tanvir-tour1',
+    tournamentId: 'tour-1-night-squad',
+    tournamentTitle: 'Night Squad Showdown (Grand Finals)',
+    userId: 'user-player-1',
+    userDisplayName: 'Tanvir Ahmed',
+    method: 'BKASH',
+    amount: 100,
+    senderNumber: '01799887766',
+    trxId: 'BKH99281742',
+    screenshotUrl: '/src/assets/images/banner_bermuda_showdown_1792418532304.jpg',
+    status: 'SUBMITTED', // Pending in admin queue!
+    paidToAccount: '01711998822',
+    createdAt: new Date(now - 20 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'pay-tanvir-tour2',
+    registrationId: 'reg-tanvir-tour2',
+    tournamentId: 'tour-2-live-kalahari',
+    tournamentTitle: 'Duo Desert Rush: Kalahari Survival',
+    userId: 'user-player-1',
+    userDisplayName: 'Tanvir Ahmed',
+    method: 'NAGAD',
+    amount: 50,
+    senderNumber: '01799887766',
+    trxId: 'NGD44391802',
+    status: 'VERIFIED',
+    verifiedBy: 'user-super-admin',
+    verifiedAt: new Date(now - 1 * oneHour).toISOString(),
+    paidToAccount: '01822334455',
+    createdAt: new Date(now - 2 * oneHour).toISOString(),
+  },
+  {
+    id: 'pay-siam-tour1',
+    registrationId: 'reg-siam-tour1',
+    tournamentId: 'tour-1-night-squad',
+    tournamentTitle: 'Night Squad Showdown (Grand Finals)',
+    userId: 'user-player-2',
+    userDisplayName: 'Siam Chowdhury',
+    method: 'BKASH',
+    amount: 100,
+    senderNumber: '01811223344',
+    trxId: 'BKH11893041',
+    status: 'VERIFIED',
+    verifiedBy: 'user-mod-payment',
+    verifiedAt: new Date(now - 2 * oneHour).toISOString(),
+    paidToAccount: '01711998822',
+    createdAt: new Date(now - 3 * oneHour).toISOString(),
+  },
+  {
+    id: 'pay-rafi-tour4',
+    registrationId: 'reg-rafi-tour4',
+    tournamentId: 'tour-4-completed-purgatory',
+    tournamentTitle: 'Solo Midnight Rush: Purgatory Championship',
+    userId: 'user-player-3',
+    userDisplayName: 'Rafiul Islam',
+    method: 'ROCKET',
+    amount: 40,
+    senderNumber: '01922334455',
+    trxId: 'RCK81029381',
+    status: 'VERIFIED',
+    verifiedBy: 'user-super-admin',
+    verifiedAt: new Date(now - 27 * oneHour).toISOString(),
+    paidToAccount: '019334455668',
+    createdAt: new Date(now - 28 * oneHour).toISOString(),
+  },
+  {
+    id: 'pay-tanvir-tour4',
+    registrationId: 'reg-tanvir-tour4',
+    tournamentId: 'tour-4-completed-purgatory',
+    tournamentTitle: 'Solo Midnight Rush: Purgatory Championship',
+    userId: 'user-player-1',
+    userDisplayName: 'Tanvir Ahmed',
+    method: 'BKASH',
+    amount: 40,
+    senderNumber: '01799887766',
+    trxId: 'BKH44192039',
+    status: 'VERIFIED',
+    verifiedBy: 'user-super-admin',
+    verifiedAt: new Date(now - 28 * oneHour).toISOString(),
+    paidToAccount: '01711998822',
+    createdAt: new Date(now - 29 * oneHour).toISOString(),
+  },
+];
+
+export const INITIAL_MATCH_RESULTS: MatchResult[] = [
+  // Results for completed Tournament 4: Solo Midnight Rush
+  {
+    id: 'res-t4-1',
+    tournamentId: 'tour-4-completed-purgatory',
+    registrationId: 'reg-tanvir-tour4',
+    placement: 1, // BOOYAH
+    kills: 8,
+    points: 20, // 12 + 8 = 20 pts
+    userId: 'user-player-1',
+    displayName: 'Tanvir Ahmed',
+    ffIgn: '亗・S N I P E R・亗',
+    slotNumber: 1,
+    screenshotUrl: '/src/assets/images/banner_bermuda_showdown_1792418532304.jpg',
+  },
+  {
+    id: 'res-t4-2',
+    tournamentId: 'tour-4-completed-purgatory',
+    registrationId: 'reg-siam-tour4-fake',
+    placement: 2,
+    kills: 5,
+    points: 14, // 9 + 5 = 14 pts
+    userId: 'user-player-2',
+    displayName: 'Siam Chowdhury',
+    ffIgn: '『BD』PREDATOR',
+    slotNumber: 4,
+  },
+  {
+    id: 'res-t4-3',
+    tournamentId: 'tour-4-completed-purgatory',
+    registrationId: 'reg-rafi-tour4',
+    placement: 3,
+    kills: 4,
+    points: 12, // 8 + 4 = 12 pts
+    userId: 'user-player-3',
+    displayName: 'Rafiul Islam',
+    ffIgn: '⚡RAF1_FF⚡',
+    slotNumber: 3,
+  },
+  {
+    id: 'res-t4-4',
+    tournamentId: 'tour-4-completed-purgatory',
+    registrationId: 'reg-fake-4',
+    placement: 4,
+    kills: 2,
+    points: 9, // 7 + 2 = 9 pts
+    userId: 'user-player-fake-4',
+    displayName: 'Shakil Ghost',
+    ffIgn: 'GHOST_RIDER',
+    slotNumber: 11,
+  },
+];
+
+export const INITIAL_WALLET_TXS: WalletTransaction[] = [
+  {
+    id: 'tx-1',
+    userId: 'user-player-1',
+    type: 'PRIZE',
+    amount: 1280, // 1200 1st place + 80 kill bonus
+    tournamentId: 'tour-4-completed-purgatory',
+    tournamentTitle: 'Solo Midnight Rush: Purgatory Championship',
+    note: 'Prize payout: 1st Place (৳1200) + 8 kills (৳80)',
+    createdAt: new Date(now - 22 * oneHour).toISOString(),
+  },
+  {
+    id: 'tx-2',
+    userId: 'user-player-1',
+    type: 'ENTRY_FEE',
+    amount: -40,
+    tournamentId: 'tour-4-completed-purgatory',
+    tournamentTitle: 'Solo Midnight Rush: Purgatory Championship',
+    note: 'Paid tournament entry fee',
+    createdAt: new Date(now - 29 * oneHour).toISOString(),
+  },
+  {
+    id: 'tx-3',
+    userId: 'user-player-1',
+    type: 'ENTRY_FEE',
+    amount: -50,
+    tournamentId: 'tour-2-live-kalahari',
+    tournamentTitle: 'Duo Desert Rush: Kalahari Survival',
+    note: 'Paid tournament entry fee via Nagad',
+    createdAt: new Date(now - 2 * oneHour).toISOString(),
+  },
+];
+
+export const INITIAL_WITHDRAWALS: Withdrawal[] = [
+  {
+    id: 'wd-1',
+    userId: 'user-player-2',
+    amount: 400,
+    method: 'BKASH',
+    accountNumber: '01811223344',
+    status: 'REQUESTED', // Waiting in admin queue!
+    createdAt: new Date(now - 45 * 60 * 1000).toISOString(),
+    userDisplayName: 'Siam Chowdhury',
+    userPhone: '01811223344',
+  },
+  {
+    id: 'wd-2',
+    userId: 'user-player-3',
+    amount: 500,
+    method: 'NAGAD',
+    accountNumber: '01922334455',
+    status: 'PAID',
+    paidTrxId: 'NGD99182903',
+    createdAt: new Date(now - 2 * oneDay).toISOString(),
+    processedAt: new Date(now - 2 * oneDay + 30 * 60000).toISOString(),
+    processedBy: 'user-super-admin',
+    userDisplayName: 'Rafiul Islam',
+    userPhone: '01922334455',
+  },
+];
+
+export const INITIAL_NOTIFICATIONS: Notification[] = [
+  {
+    id: 'notif-1',
+    userId: 'user-player-1',
+    title: 'Room Credentials Released!',
+    body: 'Custom Room details for Duo Desert Rush: Kalahari Survival are now available! Room ID: 8391024, Pass: ffbooyah7.',
+    link: '/tournaments/tour-2-live-kalahari',
+    isRead: false,
+    createdAt: new Date(now - 20 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'notif-2',
+    userId: 'user-player-1',
+    title: 'Payment Approved (Slot #7)',
+    body: 'Your payment for Duo Desert Rush was verified. You are confirmed in Slot #7.',
+    link: '/tournaments/tour-2-live-kalahari',
+    isRead: true,
+    createdAt: new Date(now - 1 * oneHour).toISOString(),
+  },
+  {
+    id: 'notif-3',
+    userId: 'user-player-1',
+    title: 'Prize Money Credited! ৳1,280',
+    body: 'Congratulations! You secured 1st Place with 8 kills in Solo Midnight Rush. ৳1,280 was credited to your wallet.',
+    link: '/wallet',
+    isRead: true,
+    createdAt: new Date(now - 22 * oneHour).toISOString(),
+  },
+];
+
+export const INITIAL_AUDIT_LOGS: AuditLog[] = [
+  {
+    id: 'audit-1',
+    actorId: 'user-super-admin',
+    actorName: 'Tariq Al-Mamun',
+    action: 'ROOM_RELEASED',
+    entityType: 'Tournament',
+    entityId: 'tour-2-live-kalahari',
+    newValue: { roomId: '8391024', status: 'LIVE' },
+    ipAddress: '103.145.112.4',
+    createdAt: new Date(now - 20 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'audit-2',
+    actorId: 'user-super-admin',
+    actorName: 'Tariq Al-Mamun',
+    action: 'RESULTS_PUBLISHED',
+    entityType: 'Tournament',
+    entityId: 'tour-4-completed-purgatory',
+    newValue: { prizeDistributed: 2000, winnersCount: 3 },
+    ipAddress: '103.145.112.4',
+    createdAt: new Date(now - 22 * oneHour).toISOString(),
+  },
+  {
+    id: 'audit-3',
+    actorId: 'user-super-admin',
+    actorName: 'Tariq Al-Mamun',
+    action: 'PAYMENT_ACCOUNT_CREATED',
+    entityType: 'PaymentAccount',
+    entityId: 'acc-bkash-1',
+    newValue: { method: 'BKASH', number: '01711998822' },
+    ipAddress: '103.145.112.4',
+    createdAt: new Date(now - 3 * oneDay).toISOString(),
+  },
+];
+
+export const INITIAL_SITE_SETTINGS: SiteSettings = {
+  siteName: 'BOOYAH Arena',
+  announcementBanner: '🔥 Grand Weekly Free Fire Tournament: ৳10,000 Prize Pool open for registrations this Friday! Join early before slots fill.',
+  supportPhone: '+880 1711-998822',
+  supportWhatsapp: 'https://wa.me/8801711998822',
+  supportTelegram: 'https://t.me/booyah_arena_official',
+  contactEmail: 'support@booyah.gg',
+  minimumWithdrawalAmount: 100,
+  rulesContent: `
+1. GENERAL RULES
+- Players must have Free Fire installed on mobile devices (iOS or Android).
+- Emulators (Bluestacks, LDPlayer, Nox, etc.) are strictly prohibited unless the specific tournament title explicitly permits them.
+- Players must register with their exact Free Fire in-game UID and IGN.
+- Gun skins attributes are kept standard (Attributes OFF) for fair play.
+
+2. ROOM DISCIPLINE
+- Room ID and Password will be displayed directly inside your confirmed registration panel 10 to 15 minutes before match start.
+- Players must join their designated slot numbers. Joining unauthorized slots may result in kick by the room moderator.
+- Match starts exactly on time. Players not inside the room at start time will forfeit their entry fee.
+
+3. ANTI-CHEAT & FAIR PLAY
+- Any third-party configs, aimbots, wallhacks, or modified APKs will result in an immediate permanent ban, forfeiture of balance, and publication on the wall of shame.
+- Teaming in Solo matches is considered fraud and both players will be disqualified without refunds.
+  `,
+  termsContent: `
+BOOYAH Arena is an esports tournament hosting and skill-based competition platform operated in Bangladesh.
+By registering, you confirm that you are at least 16 years of age and that participating in online skill-based competitive gaming matches is permitted under your local jurisdiction.
+All entry fees collected go toward prize pools and tournament administration.
+  `,
+  refundPolicyContent: `
+1. TOURNAMENT CANCELLATION
+If any tournament is cancelled by administration before the match goes LIVE, 100% of the entry fee will be immediately refunded to your BOOYAH Arena wallet.
+
+2. REJECTED PAYMENTS
+If your payment verification is rejected due to invalid transaction ID or mismatched amount, your slot hold will be released. You can contact support via WhatsApp/Telegram with proof.
+
+3. WITHDRAWAL GUARANTEE
+Wallet balances earned through tournament prizes or refunds can be withdrawn to your personal bKash, Nagad, or Rocket account. Payout requests are verified and disbursed daily within 2 to 12 hours.
+  `,
+};
