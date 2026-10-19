@@ -160,7 +160,7 @@ export const INITIAL_TOURNAMENTS: Tournament[] = [
     id: 'tour-1-night-squad',
     title: 'Night Squad Showdown (Grand Finals)',
     description: 'High-stakes 4v4 Bermuda clash. Top 3 squads claim the prize pool + bonus ৳15 per confirmed kill! Live spectating on Discord.',
-    bannerUrl: '/src/assets/images/banner_bermuda_showdown_1792418532304.jpg',
+    bannerUrl: '/src/assets/images/bermuda_tournament_banner_1792421959844.jpg',
     mode: 'SQUAD',
     map: 'BERMUDA',
     matchType: 'BR_RANKED',
@@ -185,7 +185,7 @@ export const INITIAL_TOURNAMENTS: Tournament[] = [
     id: 'tour-2-live-kalahari',
     title: 'Duo Desert Rush: Kalahari Survival',
     description: 'Intense 2v2 tactical survival. Custom Room is live! Room ID and password have been distributed to all confirmed warriors.',
-    bannerUrl: '/src/assets/images/hero_booyah_arena_1792418531252.jpg',
+    bannerUrl: '/src/assets/images/hero_booyah_epic_1792421958285.jpg',
     mode: 'DUO',
     map: 'KALAHARI',
     matchType: 'BR_RANKED',
@@ -210,7 +210,7 @@ export const INITIAL_TOURNAMENTS: Tournament[] = [
     id: 'tour-3-clash-squad',
     title: 'Clash Squad 4v4: Factory Showdown',
     description: 'Fast-paced round-by-round tactical combat in Nexterra Factory. Best of 7 rounds format. Instant Booyah glory!',
-    bannerUrl: '/src/assets/images/banner_clash_squad_1792418532376.jpg',
+    bannerUrl: '/src/assets/images/clash_squad_arena_1792421959604.jpg',
     mode: 'SQUAD',
     map: 'NEXTERRA',
     matchType: 'CLASH_SQUAD',
@@ -231,7 +231,7 @@ export const INITIAL_TOURNAMENTS: Tournament[] = [
     id: 'tour-4-completed-purgatory',
     title: 'Solo Midnight Rush: Purgatory Championship',
     description: 'Solo carnage across Brasilia and Fire Brigade. Match concluded with 48 registered players.',
-    bannerUrl: '/src/assets/images/banner_bermuda_showdown_1792418532304.jpg',
+    bannerUrl: '/src/assets/images/purgatory_rush_banner_1792421959821.jpg',
     mode: 'SOLO',
     map: 'PURGATORY',
     matchType: 'BR_RANKED',
@@ -635,4 +635,6 @@ If your payment verification is rejected due to invalid transaction ID or mismat
 3. WITHDRAWAL GUARANTEE
 Wallet balances earned through tournament prizes or refunds can be withdrawn to your personal bKash, Nagad, or Rocket account. Payout requests are verified and disbursed daily within 2 to 12 hours.
   `,
+  heroBannerUrl: '/src/assets/images/hero_booyah_epic_1792421958285.jpg',
+  gamePosterUrl: '/src/assets/images/ff_game_poster_1792421958800.jpg',
 };

@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   Menu,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Image as ImageIcon
 } from 'lucide-react';
 import { User } from '../../types';
 import { hasPermission } from '../../lib/permissions';
@@ -98,6 +99,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       label: 'Audit Trail',
       icon: ClipboardList,
       allowed: hasPermission(currentUser, 'audit.view'),
+    },
+    {
+      id: 'media',
+      label: 'Photos & Media',
+      icon: ImageIcon,
+      allowed: hasPermission(currentUser, 'tournaments.edit') || hasPermission(currentUser, 'settings.site'),
     },
     {
       id: 'settings',

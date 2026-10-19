@@ -27,6 +27,7 @@ import { AdminModerators } from './components/admin/AdminModerators';
 import { AdminUsers } from './components/admin/AdminUsers';
 import { AdminAuditLogs } from './components/admin/AdminAuditLogs';
 import { AdminSettings } from './components/admin/AdminSettings';
+import { AdminMedia } from './components/admin/AdminMedia';
 
 import { storage } from './lib/storage';
 import { User, Tournament, Registration } from './types';
@@ -248,6 +249,12 @@ export default function App() {
             {adminSubPage === 'users' && <AdminUsers currentUser={currentUser} />}
             {adminSubPage === 'moderators' && <AdminModerators currentUser={currentUser} />}
             {adminSubPage === 'audit-logs' && <AdminAuditLogs currentUser={currentUser} />}
+            {adminSubPage === 'media' && (
+              <AdminMedia
+                currentUser={currentUser}
+                onPhotosUpdated={syncState}
+              />
+            )}
             {adminSubPage === 'settings' && <AdminSettings currentUser={currentUser} />}
           </AdminLayout>
         ) : (
@@ -271,6 +278,7 @@ export default function App() {
                 currentUser={currentUser}
                 onSelectTournament={handleSelectTournament}
                 onJoinTournament={handleJoinTournament}
+                onNavigate={(tab) => handleNavigate(tab)}
                 language={language}
               />
             )}

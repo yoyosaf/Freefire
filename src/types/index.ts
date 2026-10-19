@@ -203,4 +203,7 @@ export interface SiteSettings {
   rulesContent: string;
   termsContent: string;
   refundPolicyContent: string;
+  heroBannerUrl?: string;
+  gamePosterUrl?: string;
+  logoUrl?: string;
 }

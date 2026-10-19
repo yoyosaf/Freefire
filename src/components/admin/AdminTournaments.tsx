@@ -12,12 +12,16 @@ import {
   CheckCircle2,
   Calendar,
   Flame,
-  ShieldCheck
+  ShieldCheck,
+  Image as ImageIcon,
+  Upload,
+  Check
 } from 'lucide-react';
 import { User, Tournament, TournamentMode, TournamentMap, MatchType } from '../../types';
 import { storage } from '../../lib/storage';
 import { formatBDT, formatBangladeshTime, DEFAULT_POINTS_CONFIG } from '../../lib/points';
 import { hasPermission } from '../../lib/permissions';
+import { MEDIA_PRESETS } from './AdminMedia';
 
 interface AdminTournamentsProps {
   currentUser: User;
@@ -48,9 +52,14 @@ export const AdminTournaments: React.FC<AdminTournamentsProps> = ({
   const [perKillPrize, setPerKillPrize] = useState<number>(10);
   const [maxSlots, setMaxSlots] = useState<number>(48);
   const [hoursFromNow, setHoursFromNow] = useState<number>(3);
+  const [bannerUrl, setBannerUrl] = useState<string>('');
   const [rules, setRules] = useState(
     'No emulator players allowed. Gun skins attributes: OFF. Character skills: ON. No teaming in Solo.'
   );
+
+  // Quick photo editor modal state
+  const [editingPhotoTournament, setEditingPhotoTournament] = useState<Tournament | null>(null);
+  const [photoEditUrl, setPhotoEditUrl] = useState<string>('');
 
   const canCreate = hasPermission(currentUser, 'tournaments.create');
   const canCancel = hasPermission(currentUser, 'tournaments.cancel');
@@ -70,14 +79,20 @@ export const AdminTournaments: React.FC<AdminTournamentsProps> = ({
     const startsAt = new Date(now + hoursFromNow * 3600 * 1000).toISOString();
     const registrationClosesAt = new Date(now + (hoursFromNow * 3600 - 900) * 1000).toISOString(); // 15 mins before start
 
+    // Determine banner URL from state or default preset
+    const finalBannerUrl = bannerUrl.trim() || (
+      map === 'BERMUDA' ? '/src/assets/images/bermuda_tournament_banner_1792421959844.jpg' :
+      map === 'PURGATORY' ? '/src/assets/images/purgatory_rush_banner_1792421959821.jpg' :
+      matchType === 'CLASH_SQUAD' ? '/src/assets/images/clash_squad_arena_1792421959604.jpg' :
+      '/src/assets/images/hero_booyah_epic_1792421958285.jpg'
+    );
+
     try {
       const created = storage.createTournament(
         {
           title: title.trim(),
           description: description.trim() || `${mode} clash on ${map}. Fight for Booyah!`,
-          bannerUrl: mode === 'SQUAD' 
-            ? '/src/assets/images/banner_bermuda_showdown_1792418532304.jpg' 
-            : '/src/assets/images/banner_clash_squad_1792418532376.jpg',
+          bannerUrl: finalBannerUrl,
           mode,
           map,
           matchType,
@@ -365,6 +380,64 @@ export const AdminTournaments: React.FC<AdminTournamentsProps> = ({
               </div>
             </div>
 
+            {/* Tournament Banner Graphic Selection */}
+            <div className="space-y-2 p-3 bg-zinc-900/80 border border-zinc-800 rounded-lg">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-[#FF6A00]" />
+                  Tournament Banner Photo
+                </label>
+                <span className="text-[10px] text-zinc-500">Pick preset or upload custom file</span>
+              </div>
+
+              {/* Preset Buttons */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {MEDIA_PRESETS.slice(0, 4).map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setBannerUrl(p.url)}
+                    className={`p-1.5 rounded-lg border text-left transition-all flex items-center gap-2 ${
+                      bannerUrl === p.url ? 'border-[#FF6A00] bg-[#FF6A00]/10 text-white' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    <img src={p.url} alt="" referrerPolicy="no-referrer" className="w-10 h-7 rounded object-cover" />
+                    <span className="text-[10px] font-bold truncate">{p.title}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Upload file or enter URL */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="text"
+                  placeholder="Paste banner image URL or select from above..."
+                  value={bannerUrl}
+                  onChange={(e) => setBannerUrl(e.target.value)}
+                  className="flex-1 bg-black/60 border border-zinc-700 rounded px-2.5 py-1.5 text-xs text-white"
+                />
+                <label className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white rounded cursor-pointer flex items-center gap-1 shrink-0">
+                  <Upload className="w-3.5 h-3.5 text-[#FF6A00]" />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const b64 = ev.target?.result as string;
+                        if (b64) setBannerUrl(b64);
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
@@ -403,8 +476,25 @@ export const AdminTournaments: React.FC<AdminTournamentsProps> = ({
               {tournaments.map((t) => (
                 <tr key={t.id} className="hover:bg-zinc-900/40 transition-colors">
                   <td className="py-3.5 px-4">
-                    <span className="font-bold text-white text-sm block">{t.title}</span>
-                    <span className="text-[10px] text-zinc-500 font-mono">ID: {t.id}</span>
+                    <div className="flex items-center gap-3">
+                      <div 
+                        onClick={() => {
+                          setEditingPhotoTournament(t);
+                          setPhotoEditUrl(t.bannerUrl);
+                        }}
+                        className="w-14 h-9 rounded-lg overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0 relative group cursor-pointer"
+                        title="Click to change banner photo"
+                      >
+                        <img src={t.bannerUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <ImageIcon className="w-3.5 h-3.5 text-white" />
+                        </div>
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-bold text-white text-sm block truncate max-w-xs">{t.title}</span>
+                        <span className="text-[10px] text-zinc-500 font-mono">ID: {t.id}</span>
+                      </div>
+                    </div>
                   </td>
 
                   <td className="py-3.5 px-4 whitespace-nowrap">
@@ -441,6 +531,18 @@ export const AdminTournaments: React.FC<AdminTournamentsProps> = ({
 
                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
+                      <button
+                        onClick={() => {
+                          setEditingPhotoTournament(t);
+                          setPhotoEditUrl(t.bannerUrl);
+                        }}
+                        className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-semibold transition-colors border border-zinc-700 flex items-center gap-1"
+                        title="Change tournament banner photo"
+                      >
+                        <ImageIcon className="w-3 h-3 text-[#FF6A00]" />
+                        <span>Photo</span>
+                      </button>
+
                       {canReleaseRoom && !t.roomReleasedAt && t.status !== 'COMPLETED' && t.status !== 'CANCELLED' && (
                         <button
                           onClick={() => onOpenReleaseModal(t)}
@@ -468,6 +570,109 @@ export const AdminTournaments: React.FC<AdminTournamentsProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Quick Photo Change Modal */}
+      {editingPhotoTournament && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#14141F] border border-zinc-700 rounded-2xl w-full max-w-lg p-5 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <div>
+                <span className="text-[10px] text-[#FF6A00] font-bold uppercase block">Change Banner Photo</span>
+                <h3 className="font-display text-base font-bold text-white">{editingPhotoTournament.title}</h3>
+              </div>
+              <button
+                onClick={() => setEditingPhotoTournament(null)}
+                className="w-7 h-7 rounded bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Preview */}
+            <div className="relative h-44 w-full bg-black rounded-xl overflow-hidden border border-zinc-700">
+              <img
+                src={photoEditUrl}
+                alt="Banner Preview"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Presets */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] text-zinc-400 font-bold block uppercase">Choose from Presets</label>
+              <div className="grid grid-cols-4 gap-2">
+                {MEDIA_PRESETS.slice(0, 4).map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPhotoEditUrl(p.url)}
+                    className={`h-12 rounded-lg overflow-hidden border transition-all ${
+                      photoEditUrl === p.url ? 'border-[#FF6A00] ring-2 ring-[#FF6A00]' : 'border-zinc-700 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={p.url} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Upload or URL */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Image URL..."
+                value={photoEditUrl}
+                onChange={(e) => setPhotoEditUrl(e.target.value)}
+                className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-white"
+              />
+              <label className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white rounded-lg cursor-pointer flex items-center gap-1 shrink-0">
+                <Upload className="w-3.5 h-3.5 text-[#FF6A00]" />
+                <span>Upload</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      const b64 = ev.target?.result as string;
+                      if (b64) setPhotoEditUrl(b64);
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setEditingPhotoTournament(null)}
+                className="px-4 py-2 bg-zinc-800 text-zinc-300 text-xs rounded-lg font-semibold hover:bg-zinc-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!photoEditUrl.trim()) return;
+                  storage.updateTournament(editingPhotoTournament.id, { bannerUrl: photoEditUrl }, currentUser.id);
+                  setTournaments(storage.getTournaments());
+                  setSuccess(`Banner photo for "${editingPhotoTournament.title}" updated successfully!`);
+                  setEditingPhotoTournament(null);
+                }}
+                className="px-5 py-2 bg-gradient-to-r from-[#FF6A00] to-amber-500 text-black text-xs font-extrabold rounded-lg shadow-md hover:brightness-110 flex items-center gap-1.5"
+              >
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
+                <span>Apply Photo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

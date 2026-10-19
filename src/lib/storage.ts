@@ -28,7 +28,7 @@ import {
 } from './seed-data';
 import { calcPoints } from './points';
 
-const STORAGE_KEY_PREFIX = 'booyah_arena_v1_';
+const STORAGE_KEY_PREFIX = 'booyah_arena_v2_';
 
 function loadOrInit<T>(key: string, defaultValue: T): T {
   try {
